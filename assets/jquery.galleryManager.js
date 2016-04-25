@@ -38,7 +38,7 @@
 
     var $sorter = $('.sorter', $gallery);
     var $images = $('.images', $sorter);
-    var $editorModal = $('.editor-modal', $gallery);
+    var $editorModal = $('.gallery-editor-modal');
     var $progressOverlay = $('.progress-overlay', $gallery);
     var $uploadProgress = $('.upload-progress', $progressOverlay);
     var $editorForm = $('.form', $editorModal);
