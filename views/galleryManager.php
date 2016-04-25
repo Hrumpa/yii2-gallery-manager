@@ -43,7 +43,7 @@ use yii\web\View;
     </div>
 
     <!-- Modal window to edit photo information -->
-    <div class="editor-modal modal fade">
+    <div class="gallery-editor-modal modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
