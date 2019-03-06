@@ -61,6 +61,12 @@ class GalleryManagerAction extends Action
         $this->behavior = $this->owner->getBehavior($this->behaviorName);
 
         switch ($action) {
+            case 'enable':
+                return $this->actionEnable(Yii::$app->request->post('id'));
+                break;
+            case 'disable':
+                return $this->actionDisable(Yii::$app->request->post('id'));
+                break;
             case 'delete':
                 return $this->actionDelete(Yii::$app->request->post('id'));
                 break;
@@ -79,6 +85,34 @@ class GalleryManagerAction extends Action
         }
     }
 
+    /**
+     * Set "enabled" status to the selected images.
+     * On success returns 'OK'
+     *
+     * @param $ids
+     *
+     * @throws HttpException
+     * @return string
+     */
+    protected function actionEnable($ids)
+    {
+        return $this->behavior->enableImages($ids) ? 'OK' : 'DB Error';
+    }
+    
+    /**
+     * Set "disabled" status to the selected images.
+     * On success returns 'OK'
+     *
+     * @param $ids
+     *
+     * @throws HttpException
+     * @return string
+     */
+    protected function actionDisable($ids)
+    {
+        return $this->behavior->disableImages($ids) ? 'OK' : 'DB Error';
+    }
+    
     /**
      * Removes image with ids specified in post request.
      * On success returns 'OK'
@@ -119,6 +153,7 @@ class GalleryManagerAction extends Action
             array(
                 'id' => $image->id,
                 'rank' => $image->rank,
+                'status' => $image->status,
                 'name' => (string)$image->name,
                 'description' => (string)$image->description,
                 'preview' => $image->getUrl('preview'),
@@ -165,6 +200,7 @@ class GalleryManagerAction extends Action
             $resp[] = array(
                 'id' => $model->id,
                 'rank' => $model->rank,
+                'status' => $model->status,
                 'name' => (string)$model->name,
                 'description' => (string)$model->description,
                 'preview' => $model->getUrl('preview'),
@@ -173,4 +209,6 @@ class GalleryManagerAction extends Action
 
         return Json::encode($resp);
     }
+    
+    
 }

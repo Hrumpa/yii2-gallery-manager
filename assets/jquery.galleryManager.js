@@ -13,6 +13,8 @@
 
     uploadUrl: '',
     deleteUrl: '',
+    enableUrl: '',
+    disableUrl: '',
     updateUrl: '',
     arrangeUrl: '',
 
@@ -88,6 +90,8 @@
     }
     photoTemplate += '</div><div class="actions">';
 
+    photoTemplate += '<span class="enablePhoto btn btn-warning btn-xs"><i class="glyphicon glyphicon-eye-close glyphicon-white"></i></span> ';
+    photoTemplate += '<span class="disablePhoto btn btn-success btn-xs"><i class="glyphicon glyphicon-eye-open glyphicon-white"></i></span> ';
     if (opts.hasName || opts.hasDesc) {
       photoTemplate += '<span class="editPhoto btn btn-primary btn-xs"><i class="glyphicon glyphicon-pencil glyphicon-white"></i></span> ';
     }
@@ -96,11 +100,12 @@
     '</div><input type="checkbox" class="photo-select"/></div>';
 
 
-    function addPhoto(id, src, name, description, rank) {
+    function addPhoto(id, src, name, description, rank, status) {
       var photo = $(photoTemplate);
       photos[id] = photo;
       photo.data('id', id);
       photo.data('rank', rank);
+      photo.data('status', status);
 
       $('img', photo).attr('src', src);
       if (opts.hasName){
@@ -108,6 +113,12 @@
       }
       if (opts.hasDesc){
         $('.caption p', photo).text(description);
+      }
+      console.log(status);
+      if (status == 0) {
+          $('.disablePhoto', photo).hide();
+      } else {
+          $('.enablePhoto', photo).hide();
       }
 
       $images.append(photo);
@@ -148,7 +159,64 @@
         }
       });
     }
+    
+    function enablePhotos(ids) {
+      $.ajax({
+        type: 'POST',
+        url: opts.enableUrl,
+        data: 'id[]=' + ids.join('&id[]=') + csrfParams,
+        success: function (t) {
+          if (t == 'OK') {
+              $.each(ids, function (key, id) {
+                  var photo = photos[id];
+                  $('.enablePhoto', photo).hide();
+                  $('.disablePhoto', photo).show();
+              });
+          } else {
+            alert(t);
+          }
+        }
+      });
+    }
+    
+    function disablePhotos(ids) {
+      $.ajax({
+        type: 'POST',
+        url: opts.disableUrl,
+        data: 'id[]=' + ids.join('&id[]=') + csrfParams,
+        success: function (t) {
+          if (t == 'OK') {
+              $.each(ids, function (key, id) {
+                  var photo = photos[id];
+                  $('.enablePhoto', photo).show();
+                  $('.disablePhoto', photo).hide();
+              });
+          } else {
+            alert(t);
+          }
+        }
+      });
+    }
 
+    function enableClick(e) {
+      e.preventDefault();
+      var photo = $(this).closest('.photo');
+      var id = photo.data('id');
+      // here can be question to confirm delete
+      // if (!confirm(deleteConfirmation)) return false;
+      enablePhotos([id]);
+      return false;
+    }
+
+    function disableClick(e) {
+      e.preventDefault();
+      var photo = $(this).closest('.photo');
+      var id = photo.data('id');
+      // here can be question to confirm delete
+      // if (!confirm(deleteConfirmation)) return false;
+      disablePhotos([id]);
+      return false;
+    }
 
     function deleteClick(e) {
       e.preventDefault();
@@ -172,9 +240,9 @@
       var selectedCount = $('.photo.selected', $sorter).length;
       $('.select_all', $gallery).prop('checked', $('.photo', $sorter).length == selectedCount);
       if (selectedCount == 0) {
-        $('.edit_selected, .remove_selected', $gallery).addClass('disabled');
+        $('.edit_selected, .remove_selected, .enable_selected, .disable_selected', $gallery).addClass('disabled');
       } else {
-        $('.edit_selected, .remove_selected', $gallery).removeClass('disabled');
+        $('.edit_selected, .remove_selected, .enable_selected, .disable_selected', $gallery).removeClass('disabled');
       }
     }
 
@@ -186,8 +254,20 @@
         $this.closest('.photo').removeClass('selected');
       updateButtons();
     }
+    
+    function deselectAll() {
+        //deselect all items after editing
+        $('.photo.selected', $sorter).each(function () {
+          $('.photo-select', this).prop('checked', false)
+        }).removeClass('selected');
+        $('.select_all', $gallery).prop('checked', false);
+        updateButtons();
+    }
+    
 
     $images
+      .on('click', '.photo .enablePhoto', enableClick)
+      .on('click', '.photo .disablePhoto', disableClick)
       .on('click', '.photo .deletePhoto', deleteClick)
       .on('click', '.photo .editPhoto', editClick)
       .on('click', '.photo .photo-select', selectChanged);
@@ -236,7 +316,7 @@
             uploadedCount++;
             if (this.status == 200) {
               var resp = JSON.parse(this.response);
-              addPhoto(resp['id'], resp['preview'], resp['name'], resp['description'], resp['rank']);
+              addPhoto(resp['id'], resp['preview'], resp['name'], resp['description'], resp['rank'], resp['status']);
               ids.push(resp['id']);
             } else {
               // exception !!!
@@ -324,7 +404,7 @@
           processData: false,
           dataType: "json"
         }).done(function (resp) {
-          addPhoto(resp['id'], resp['preview'], resp['name'], resp['description'], resp['rank']);
+          addPhoto(resp['id'], resp['preview'], resp['name'], resp['description'], resp['rank'], resp['status']);
           ids.push(resp['id']);
           $uploadProgress.css('width', '100%');
           $progressOverlay.hide();
@@ -347,14 +427,28 @@
             $('.caption p', photo).text(p['description']);
         }
         $editorModal.modal('hide');
-        //deselect all items after editing
-        $('.photo.selected', $sorter).each(function () {
-          $('.photo-select', this).prop('checked', false)
-        }).removeClass('selected');
-        $('.select_all', $gallery).prop('checked', false);
-        updateButtons();
+        deselectAll();
       }, 'json');
+    });
 
+    $('.enable_selected', $gallery).click(function (e) {
+      e.preventDefault();
+      var ids = [];
+      $('.photo.selected', $sorter).each(function () {
+        ids.push($(this).data('id'));
+      });
+      enablePhotos(ids);
+      return false;
+    });
+
+    $('.disable_selected', $gallery).click(function (e) {
+      e.preventDefault();
+      var ids = [];
+      $('.photo.selected', $sorter).each(function () {
+        ids.push($(this).data('id'));
+      });
+      disablePhotos(ids);
+      return false;
     });
 
     $('.edit_selected', $gallery).click(function (e) {
@@ -392,7 +486,7 @@
 
     for (var i = 0, l = opts.photos.length; i < l; i++) {
       var resp = opts.photos[i];
-      addPhoto(resp['id'], resp['preview'], resp['name'], resp['description'], resp['rank']);
+      addPhoto(resp['id'], resp['preview'], resp['name'], resp['description'], resp['rank'], resp['status']);
     }
   }
 

@@ -26,6 +26,12 @@ use yii\web\View;
                     'Select all'
                 ); ?>
             </label>
+            <div class="btn btn-default disabled enable_selected">
+                <i class="glyphicon glyphicon-eye-open"></i> <?php echo Yii::t('galleryManager/main', 'Enable'); ?>
+            </div>
+            <div class="btn btn-default disabled disable_selected">
+                <i class="glyphicon glyphicon-eye-close"></i> <?php echo Yii::t('galleryManager/main', 'Disable'); ?>
+            </div>
             <div class="btn btn-default disabled edit_selected">
                 <i class="glyphicon glyphicon-pencil"></i> <?php echo Yii::t('galleryManager/main', 'Edit'); ?>
             </div>

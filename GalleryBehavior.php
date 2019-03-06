@@ -171,9 +171,33 @@ class GalleryBehavior extends Behavior
             $query = new \yii\db\Query();
 
             $imagesData = $query
-                ->select(['id', 'name', 'description', 'rank'])
+                ->select(['id', 'name', 'description', 'rank', 'status'])
                 ->from($this->tableName)
                 ->where(['type' => $this->type, 'ownerId' => $this->getGalleryId()])
+                ->orderBy(['rank' => 'asc'])
+                ->all();
+
+            $this->_images = [];
+            foreach ($imagesData as $imageData) {
+                $this->_images[] = new GalleryImage($this, $imageData);
+            }
+        }
+
+        return $this->_images;
+    }
+
+    /**
+     * @return GalleryImage[]
+     */
+    public function getEnabledImages()
+    {
+        if ($this->_images === null) {
+            $query = new \yii\db\Query();
+
+            $imagesData = $query
+                ->select(['id', 'name', 'description', 'rank', 'status'])
+                ->from($this->tableName)
+                ->where(['type' => $this->type, 'ownerId' => $this->getGalleryId(), 'status' => GalleryImage::STATUS_ENABLED])
                 ->orderBy(['rank' => 'asc'])
                 ->all();
 
@@ -288,6 +312,37 @@ class GalleryBehavior extends Behavior
     }
 
     /////////////////////////////// ========== Public Actions ============ ///////////////////////////
+
+    public function enableImages($imageIds)
+    {
+        return $this->changeImagesStatus($imageIds, GalleryImage::STATUS_ENABLED);
+    }
+    
+    public function disableImages($imageIds)
+    {
+        return $this->changeImagesStatus($imageIds, GalleryImage::STATUS_DISABLED);
+    }
+    
+    private function changeImagesStatus($imageIds, $status)
+    {
+        $db = \Yii::$app->db;
+        $numUpdated = $db->createCommand()
+            ->update(
+                $this->tableName,
+                ['status' => $status],
+                ['id' => $imageIds]
+            )->execute();
+
+        if ($this->_images !== null) {
+            $this->_images = array_map(function ($image) use ($imageIds) {
+                if (in_array($image->id, $imageIds)) {
+                    $image->status = $status;
+                }
+            }, $this->_images);
+        }
+        return $numUpdated;
+    }
+
     public function deleteImage($imageId)
     {
         foreach ($this->versions as $version => $fn) {
@@ -434,8 +489,8 @@ class GalleryBehavior extends Behavior
 
         return $imagesToUpdate;
     }
-
-    /**
+    
+   /**
      * Regenerate image versions
      * Should be called in migration on every model after changes in versions configuration
      *

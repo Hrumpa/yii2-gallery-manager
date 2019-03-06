@@ -5,6 +5,8 @@
  * @version $Id: $
  */
 return [
+    'Disable' => 'Отключить',
+    'Enable' => 'Включить',
     'Description' => 'Описание',
     'Name' => 'Название',
     'Add…' => 'Добавить…',
