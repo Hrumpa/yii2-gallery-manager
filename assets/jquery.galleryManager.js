@@ -114,7 +114,7 @@
       if (opts.hasDesc){
         $('.caption p', photo).text(description);
       }
-      console.log(status);
+      
       if (status == 0) {
           $('.disablePhoto', photo).hide();
       } else {

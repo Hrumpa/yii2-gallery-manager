@@ -387,13 +387,13 @@ class GalleryBehavior extends Behavior
         $db->createCommand()
             ->update(
                 $this->tableName,
-                ['rank' => $id],
+                ['rank' => $id, 'status' => GalleryImage::STATUS_ENABLED],
                 ['id' => $id]
             )->execute();
 
         $this->replaceImage($id, $fileName);
 
-        $galleryImage = new GalleryImage($this, ['id' => $id]);
+        $galleryImage = new GalleryImage($this, ['id' => $id, 'status' => GalleryImage::STATUS_ENABLED]);
 
         if ($this->_images !== null) {
             $this->_images[] = $galleryImage;
