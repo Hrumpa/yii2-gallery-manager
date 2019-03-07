@@ -7,10 +7,11 @@
 
     nameLabel: 'Name',
     descriptionLabel: 'Description',
+    deleteConfirmation: 'Images will be permanently deleted. Are you sure?',
 
     hasName: true,
     hasDesc: true,
-
+    
     uploadUrl: '',
     deleteUrl: '',
     enableUrl: '',
@@ -202,8 +203,6 @@
       e.preventDefault();
       var photo = $(this).closest('.photo');
       var id = photo.data('id');
-      // here can be question to confirm delete
-      // if (!confirm(deleteConfirmation)) return false;
       enablePhotos([id]);
       return false;
     }
@@ -212,8 +211,6 @@
       e.preventDefault();
       var photo = $(this).closest('.photo');
       var id = photo.data('id');
-      // here can be question to confirm delete
-      // if (!confirm(deleteConfirmation)) return false;
       disablePhotos([id]);
       return false;
     }
@@ -223,7 +220,7 @@
       var photo = $(this).closest('.photo');
       var id = photo.data('id');
       // here can be question to confirm delete
-      // if (!confirm(deleteConfirmation)) return false;
+      if (!confirm(opts.deleteConfirmation)) return false;
       removePhotos([id]);
       return false;
     }
@@ -464,6 +461,7 @@
 
     $('.remove_selected', $gallery).click(function (e) {
       e.preventDefault();
+      if (!confirm(opts.deleteConfirmation)) return false;
       var ids = [];
       $('.photo.selected', $sorter).each(function () {
         ids.push($(this).data('id'));
